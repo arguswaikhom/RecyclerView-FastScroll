@@ -2,6 +2,7 @@
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.simplecityapps/recyclerview-fastscroll/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.simplecityapps/recyclerview-fastscroll) [![API](https://img.shields.io/badge/API-11%2B-blue.svg?style=flat)](https://android-arsenal.com/api?level=11)
 [![License](http://img.shields.io/badge/license-APACHE2-blue.svg)](NOTICE)
+[![Build Status](https://travis-ci.org/timusus/RecyclerView-FastScroll.svg?branch=master)](https://travis-ci.org/timusus/RecyclerView-FastScroll)
 
 A simple `FastScroller` for Android's `RecyclerView`.
 
@@ -9,10 +10,10 @@ Supports vertical `RecyclerViews` using either `LinearLayoutManager` or `GridLay
 
 The style is loosely based on the `ListView` `FastScroller` from whatever the last version of Lollipop was. This library borrows heavily from [Google's Launcher3 FastScroller](https://android.googlesource.com/platform/packages/apps/Launcher3/)
 
-![Screenshot](https://github.com/timusus/RecyclerView-FastScroll/blob/master/screenshot.jpg)
+![Screenshot](https://github.com/timusus/RecyclerView-FastScroll/blob/master/screenshot.png)
 
 ###Gradle###
-`compile 'com.simplecityapps:recyclerview-fastscroll:1.0.6'`
+`compile 'com.simplecityapps:recyclerview-fastscroll:1.0.9'`
 
 ###Usage###
 You must use `FastScrollRecyclerView` as your base `RecyclerView`. See the sample project if you're having trouble.
@@ -53,7 +54,14 @@ The popup background, popup text, track background and thumb color can all be st
 Or programmatically via `setThumbColor(@ColorInt int color)`, `setTrackColor(@ColorInt int color)`, `setPopupBgColor(@ColorInt int color)`& `setPopupTextColor(@ColorInt int color)`
 
 ###Updates###
-Note: as of v1.0.6, the `FastScrollPopup` no longer requires your adapter to implement `SectionIndexer`, but rather `FastScrollRecyclerView.SectionedAdapter`, which is much easier to use.
+v1.0.6
+- The `FastScrollPopup` no longer requires your adapter to implement `SectionIndexer`, but rather `FastScrollRecyclerView.SectionedAdapter`, which is much easier to use.
+
+v1.0.9 
+
+- Updated gradle & dependencies
+- Fixed crash when no adapter was set on the `RecyclerView`
+- Fixed crash when `RecyclerView` children are null (`itemCount` is non zero, but `getChildAt(0)` returns null).
 
 ###Licenses###
 

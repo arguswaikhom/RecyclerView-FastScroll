@@ -132,7 +132,7 @@ public class FastScrollRecyclerView extends RecyclerView implements RecyclerView
     /**
      * Returns the available scroll height:
      * AvailableScrollHeight = Total height of the all items - last page height
-     * <p/>
+     *
      * This assumes that all rows are the same height.
      *
      * @param yOffset the offset from the top of the recycler view to start tracking.
@@ -245,6 +245,11 @@ public class FastScrollRecyclerView extends RecyclerView implements RecyclerView
      * Updates the bounds for the scrollbar.
      */
     public void onUpdateScrollbar() {
+
+        if (getAdapter() == null) {
+            return;
+        }
+
         int rowCount = getAdapter().getItemCount();
         if (getLayoutManager() instanceof GridLayoutManager) {
             int spanCount = ((GridLayoutManager) getLayoutManager()).getSpanCount();
@@ -276,10 +281,11 @@ public class FastScrollRecyclerView extends RecyclerView implements RecyclerView
 
         int itemCount = getAdapter().getItemCount();
 
-        // Return early if there are no items
-        if (itemCount == 0) {
+        // Return early if there are no items, or no children.
+        if (itemCount == 0 || getChildCount() == 0) {
             return;
         }
+        
         View child = getChildAt(0);
 
         stateOut.rowIndex = getChildAdapterPosition(child);

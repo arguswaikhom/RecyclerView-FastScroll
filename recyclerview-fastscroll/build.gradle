@@ -2,12 +2,12 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    buildToolsVersion "23.0.3"
 
     defaultConfig {
         minSdkVersion 11
-        versionCode 2
-        versionName "1.0.6"
+        versionCode 5
+        versionName "1.0.9"
     }
 }
 
@@ -15,7 +15,8 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
     //RecyclerView
-    compile 'com.android.support:recyclerview-v7:23.2.1'
+    compile 'com.android.support:recyclerview-v7:23.4.0'
 }
 
-apply from : 'deploy.gradle'
+//To deploy, re-comment following line & run ./gradlew clean assembleRelease install bintrayUpload
+//apply from : 'deploy.gradle'

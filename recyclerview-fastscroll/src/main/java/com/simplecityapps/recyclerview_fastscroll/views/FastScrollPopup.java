@@ -19,10 +19,13 @@ package com.simplecityapps.recyclerview_fastscroll.views;
 import android.animation.ObjectAnimator;
 import android.content.res.Resources;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Typeface;
+import android.support.annotation.Keep;
 import android.text.TextUtils;
 
 import com.simplecityapps.recyclerview_fastscroll.utils.Utils;
@@ -39,6 +42,7 @@ public class FastScrollPopup {
     private Path mBackgroundPath = new Path();
     private RectF mBackgroundRect = new RectF();
     private Paint mBackgroundPaint;
+    private int mBackgroundColor = 0xff000000;
 
     private Rect mInvalidateRect = new Rect();
     private Rect mTmpRect = new Rect();
@@ -56,31 +60,47 @@ public class FastScrollPopup {
     private ObjectAnimator mAlphaAnimator;
     private boolean mVisible;
 
+    @FastScroller.FastScrollerPopupPosition private int mPosition;
+
     public FastScrollPopup(Resources resources, FastScrollRecyclerView recyclerView) {
 
         mRes = resources;
 
         mRecyclerView = recyclerView;
 
-        mBackgroundSize = Utils.toPixels(mRes, 88);
-        mCornerRadius = mBackgroundSize / 2;
-
         mBackgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
         mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mTextPaint.setAlpha(0);
-        //Todo: Set typeface from attributes or create method setTypeface()
-        //mTextPaint.setTypeface(TypefaceManager.getInstance().getTypeface(TypefaceManager.SANS_SERIF));
-        mTextPaint.setTextSize(Utils.toPixels(mRes, 56));
+
+        setTextSize(Utils.toScreenPixels(mRes, 56));
+        setBackgroundSize(Utils.toPixels(mRes, 88));
     }
 
     public void setBgColor(int color) {
+        mBackgroundColor = color;
         mBackgroundPaint.setColor(color);
         mRecyclerView.invalidate(mBgBounds);
     }
 
     public void setTextColor(int color) {
         mTextPaint.setColor(color);
+        mRecyclerView.invalidate(mBgBounds);
+    }
+
+    public void setTextSize(int size) {
+        mTextPaint.setTextSize(size);
+        mRecyclerView.invalidate(mBgBounds);
+    }
+
+    public void setBackgroundSize(int size) {
+        mBackgroundSize = size;
+        mCornerRadius = mBackgroundSize / 2;
+        mRecyclerView.invalidate(mBgBounds);
+    }
+
+    public void setTypeface(Typeface typeface) {
+        mTextPaint.setTypeface(typeface);
         mRecyclerView.invalidate(mBgBounds);
     }
 
@@ -100,13 +120,36 @@ public class FastScrollPopup {
     }
 
     // Setter/getter for the popup alpha for animations
+    @Keep
     public void setAlpha(float alpha) {
         mAlpha = alpha;
         mRecyclerView.invalidate(mBgBounds);
     }
 
+    @Keep
     public float getAlpha() {
         return mAlpha;
+    }
+
+    public void setPopupPosition(@FastScroller.FastScrollerPopupPosition int position) {
+        mPosition = position;
+    }
+
+    @FastScroller.FastScrollerPopupPosition
+    public int getPopupPosition() {
+        return mPosition;
+    }
+
+    private float[] createRadii() {
+        if (mPosition == FastScroller.FastScrollerPopupPosition.CENTER) {
+            return new float[]{mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius};
+        }
+
+        if (Utils.isRtl(mRes)) {
+            return new float[]{mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, 0, 0};
+        } else {
+            return new float[]{mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, 0, 0, mCornerRadius, mCornerRadius};
+        }
     }
 
     public void draw(Canvas canvas) {
@@ -120,18 +163,11 @@ public class FastScrollPopup {
             mBackgroundPath.reset();
             mBackgroundRect.set(mTmpRect);
 
-            float[] radii;
-
-            if (Utils.isRtl(mRes)) {
-                radii = new float[]{mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, 0, 0};
-            } else {
-
-                radii = new float[]{mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, 0, 0, mCornerRadius, mCornerRadius};
-            }
+            float[] radii = createRadii();
 
             mBackgroundPath.addRoundRect(mBackgroundRect, radii, Path.Direction.CW);
 
-            mBackgroundPaint.setAlpha((int) (mAlpha * 255));
+            mBackgroundPaint.setAlpha((int) (Color.alpha(mBackgroundColor) * mAlpha));
             mTextPaint.setAlpha((int) (mAlpha * 255));
             canvas.drawPath(mBackgroundPath, mBackgroundPaint);
             canvas.drawText(mSectionName, (mBgBounds.width() - mTextBounds.width()) / 2,
@@ -164,15 +200,21 @@ public class FastScrollPopup {
             int bgPadding = (mBackgroundSize - mTextBounds.height()) / 2;
             int bgHeight = mBackgroundSize;
             int bgWidth = Math.max(mBackgroundSize, mTextBounds.width() + (2 * bgPadding));
-            if (Utils.isRtl(mRes)) {
-                mBgBounds.left = (2 * recyclerView.getScrollBarWidth());
+            if (mPosition == FastScroller.FastScrollerPopupPosition.CENTER) {
+                mBgBounds.left = (recyclerView.getWidth() - bgWidth) / 2;
                 mBgBounds.right = mBgBounds.left + bgWidth;
+                mBgBounds.top = (recyclerView.getHeight() - bgHeight) / 2;
             } else {
-                mBgBounds.right = recyclerView.getWidth() - (2 * recyclerView.getScrollBarWidth());
-                mBgBounds.left = mBgBounds.right - bgWidth;
+                if (Utils.isRtl(mRes)) {
+                    mBgBounds.left = (2 * recyclerView.getScrollBarWidth());
+                    mBgBounds.right = mBgBounds.left + bgWidth;
+                } else {
+                    mBgBounds.right = recyclerView.getWidth() - (2 * recyclerView.getScrollBarWidth());
+                    mBgBounds.left = mBgBounds.right - bgWidth;
+                }
+                mBgBounds.top = thumbOffsetY - bgHeight + recyclerView.getScrollBarThumbHeight() / 2;
+                mBgBounds.top = Math.max(edgePadding, Math.min(mBgBounds.top, recyclerView.getHeight() - edgePadding - bgHeight));
             }
-            mBgBounds.top = thumbOffsetY - bgHeight + recyclerView.getScrollBarThumbHeight() / 2;
-            mBgBounds.top = Math.max(edgePadding, Math.min(mBgBounds.top, recyclerView.getHeight() - edgePadding - bgHeight));
             mBgBounds.bottom = mBgBounds.top + bgHeight;
         } else {
             mBgBounds.setEmpty();

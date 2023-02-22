@@ -27,6 +27,7 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.support.annotation.Keep;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.simplecityapps.recyclerview_fastscroll.utils.Utils;
 
@@ -60,7 +61,8 @@ public class FastScrollPopup {
     private ObjectAnimator mAlphaAnimator;
     private boolean mVisible;
 
-    @FastScroller.FastScrollerPopupPosition private int mPosition;
+    @FastScroller.FastScrollerPopupPosition
+    private int mPosition;
 
     public FastScrollPopup(Resources resources, FastScrollRecyclerView recyclerView) {
 
@@ -218,7 +220,12 @@ public class FastScrollPopup {
 //                mBgBounds.top = Math.max(edgePadding, Math.min(mBgBounds.top, recyclerView.getHeight() - edgePadding - bgHeight));
 
                 // Align the fast scroller popup at the vertical center of the thumb
-                mBgBounds.top = thumbOffsetY + recyclerView.getScrollBarThumbHeight() / 2 - bgHeight / 2;
+//                mBgBounds.top = thumbOffsetY + recyclerView.getScrollBarThumbHeight() / 2 - bgHeight / 2;
+                mBgBounds.top = isScrollingUp ? thumbOffsetY : thumbOffsetY + bgHeight / 3;
+                if (thumbOffsetY == 0 || thumbOffsetY == recyclerView.getHeight() - recyclerView.getScrollBarThumbHeight()) {
+                    mBgBounds.top = thumbOffsetY + recyclerView.getScrollBarThumbHeight() / 2 - bgHeight / 2;
+                }
+                Log.d("", "" + thumbOffsetY);
             }
             mBgBounds.bottom = mBgBounds.top + bgHeight;
         } else {

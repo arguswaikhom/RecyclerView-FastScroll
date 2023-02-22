@@ -27,6 +27,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.support.annotation.ColorInt;
 import android.support.annotation.IntDef;
@@ -79,6 +80,9 @@ public class FastScroller {
     private int mAutoHideDelay = DEFAULT_AUTO_HIDE_DELAY;
     private boolean mAutoHideEnabled = true;
     private final Runnable mHideRunnable;
+    private int mTouchSlop;
+    private int mLastY;
+
 
     @Retention(SOURCE)
     @IntDef({FastScrollerPopupPosition.ADJACENT, FastScrollerPopupPosition.CENTER})
@@ -101,6 +105,8 @@ public class FastScroller {
 
         mThumbPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mTrackPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
 
         TypedArray typedArray = context.getTheme().obtainStyledAttributes(
                 attrs, R.styleable.FastScrollRecyclerView, 0, 0);
@@ -216,7 +222,7 @@ public class FastScroller {
             case MotionEvent.ACTION_MOVE:
                 // Check if we should start scrolling
                 if (!mIsDragging && isNearPoint(downX, downY) &&
-                        Math.abs(y - downY) > config.getScaledTouchSlop()) {
+                        Math.abs(y - downY) > mTouchSlop) {
                     mRecyclerView.getParent().requestDisallowInterceptTouchEvent(true);
                     mIsDragging = true;
                     mTouchOffset += (lastY - downY);
@@ -226,19 +232,30 @@ public class FastScroller {
                     }
                 }
                 if (mIsDragging) {
-                    // Update the fastscroller section name at this touch position
-                    int top = 0;
-                    int bottom = mRecyclerView.getHeight() - mThumbHeight;
-                    float boundedY = (float) Math.max(top, Math.min(bottom, y - mTouchOffset));
-                    String sectionName = mRecyclerView.scrollToPositionAtProgress((boundedY - top) / (bottom - top));
-                    mPopup.setSectionName(sectionName);
-                    mPopup.animateVisibility(!sectionName.isEmpty());
-                    mRecyclerView.invalidate(mPopup.updateFastScrollerBounds(mRecyclerView, mThumbPosition.y, mScrollingUp));
+                    if (mLastY == 0 || Math.abs(mLastY - y) >= mTouchSlop) {
+                        mLastY = y;
+                        // Update the fastscroller section name at this touch position
+                        boolean layoutManagerReversed = mRecyclerView.isLayoutManagerReversed();
+                        int bottom = mRecyclerView.getHeight() - mThumbHeight;
+                        float boundedY = (float) Math.max(0, Math.min(bottom, y - mTouchOffset));
+
+                        // Represents the amount the thumb has scrolled divided by its total scroll range
+                        float touchFraction = boundedY / bottom;
+                        if (layoutManagerReversed) {
+                            touchFraction = 1 - touchFraction;
+                        }
+
+                        String sectionName = mRecyclerView.scrollToPositionAtProgress(touchFraction);
+                        mPopup.setSectionName(sectionName);
+                        mPopup.animateVisibility(!sectionName.isEmpty());
+                        mRecyclerView.invalidate(mPopup.updateFastScrollerBounds(mRecyclerView, mThumbPosition.y, mScrollingUp));
+                    }
                 }
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 mTouchOffset = 0;
+                mLastY = 0;
                 if (mIsDragging) {
                     mIsDragging = false;
                     mPopup.animateVisibility(false);
@@ -260,7 +277,14 @@ public class FastScroller {
         // canvas.drawRect(mThumbPosition.x + mOffset.x, mOffset.y, mThumbPosition.x + mOffset.x + mWidth, mRecyclerView.getHeight() + mOffset.y, mTrackPaint);
 
         //Handle
-        canvas.drawRect(mThumbPosition.x + mOffset.x, mThumbPosition.y + mOffset.y, mThumbPosition.x + mOffset.x + mWidth, mThumbPosition.y + mOffset.y + mThumbHeight, mThumbPaint);
+        RectF rect = new RectF();
+        rect.set(mThumbPosition.x + mOffset.x, mThumbPosition.y + mOffset.y, mThumbPosition.x + mOffset.x + mWidth, mThumbPosition.y + mOffset.y + mThumbHeight);
+        canvas.drawRoundRect(rect,
+                mWidth,
+                mWidth,
+                mThumbPaint);
+
+//        canvas.drawRect(mThumbPosition.x + mOffset.x, mThumbPosition.y + mOffset.y, mThumbPosition.x + mOffset.x + mWidth, mThumbPosition.y + mOffset.y + mThumbHeight, mThumbPaint);
 
         //Popup
         mPopup.draw(canvas);

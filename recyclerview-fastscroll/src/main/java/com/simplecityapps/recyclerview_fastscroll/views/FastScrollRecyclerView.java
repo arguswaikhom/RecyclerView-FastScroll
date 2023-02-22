@@ -377,6 +377,13 @@ public class FastScrollRecyclerView extends RecyclerView implements RecyclerView
         return totalHeight;
     }
 
+    protected boolean isLayoutManagerReversed() {
+        if (getLayoutManager() instanceof LinearLayoutManager) {
+            return ((LinearLayoutManager) getLayoutManager()).getReverseLayout();
+        }
+        return false;
+    }
+
     /**
      * Returns the current scroll state of the apps rows.
      */

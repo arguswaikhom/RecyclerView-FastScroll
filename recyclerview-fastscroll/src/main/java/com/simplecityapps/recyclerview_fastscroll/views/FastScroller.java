@@ -171,6 +171,30 @@ public class FastScroller {
         return mIsDragging;
     }
 
+    private float mLastYFloat = -1;
+    private boolean mScrollingUp = false;
+
+    void identifyScrollDirection(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                mLastYFloat = event.getRawY();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                float newY = event.getRawY();
+                if (mLastYFloat != -1) {
+                    float deltaY = newY - mLastYFloat;
+                    if (deltaY > 0) mScrollingUp = false;
+                    else if (deltaY < 0) mScrollingUp = true;
+                }
+                mLastYFloat = newY;
+                break;
+            case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
+                mLastYFloat = -1;
+                break;
+        }
+    }
+
     /**
      * Handles the touch event and determines whether to show the fast scroller (or updates it if
      * it is already showing).
@@ -178,6 +202,8 @@ public class FastScroller {
     public void handleTouchEvent(MotionEvent ev, int downX, int downY, int lastY,
                                  OnFastScrollStateChangeListener stateChangeListener) {
         ViewConfiguration config = ViewConfiguration.get(mRecyclerView.getContext());
+
+        identifyScrollDirection(ev);
 
         int action = ev.getAction();
         int y = (int) ev.getY();
@@ -207,7 +233,7 @@ public class FastScroller {
                     String sectionName = mRecyclerView.scrollToPositionAtProgress((boundedY - top) / (bottom - top));
                     mPopup.setSectionName(sectionName);
                     mPopup.animateVisibility(!sectionName.isEmpty());
-                    mRecyclerView.invalidate(mPopup.updateFastScrollerBounds(mRecyclerView, mThumbPosition.y));
+                    mRecyclerView.invalidate(mPopup.updateFastScrollerBounds(mRecyclerView, mThumbPosition.y, mScrollingUp));
                 }
                 break;
             case MotionEvent.ACTION_UP:
@@ -231,7 +257,7 @@ public class FastScroller {
         }
 
         //Background
-        canvas.drawRect(mThumbPosition.x + mOffset.x, mOffset.y, mThumbPosition.x + mOffset.x + mWidth, mRecyclerView.getHeight() + mOffset.y, mTrackPaint);
+        // canvas.drawRect(mThumbPosition.x + mOffset.x, mOffset.y, mThumbPosition.x + mOffset.x + mWidth, mRecyclerView.getHeight() + mOffset.y, mTrackPaint);
 
         //Handle
         canvas.drawRect(mThumbPosition.x + mOffset.x, mThumbPosition.y + mOffset.y, mThumbPosition.x + mOffset.x + mWidth, mThumbPosition.y + mOffset.y + mThumbHeight, mThumbPaint);

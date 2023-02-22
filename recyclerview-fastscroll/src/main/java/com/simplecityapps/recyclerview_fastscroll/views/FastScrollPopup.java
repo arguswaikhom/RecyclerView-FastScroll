@@ -141,7 +141,9 @@ public class FastScrollPopup {
     }
 
     private float[] createRadii() {
-        if (mPosition == FastScroller.FastScrollerPopupPosition.CENTER) {
+        return new float[]{mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius};
+
+       /* if (mPosition == FastScroller.FastScrollerPopupPosition.CENTER) {
             return new float[]{mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius};
         }
 
@@ -149,7 +151,7 @@ public class FastScrollPopup {
             return new float[]{mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, 0, 0};
         } else {
             return new float[]{mCornerRadius, mCornerRadius, mCornerRadius, mCornerRadius, 0, 0, mCornerRadius, mCornerRadius};
-        }
+        }*/
     }
 
     public void draw(Canvas canvas) {
@@ -191,7 +193,7 @@ public class FastScrollPopup {
      *
      * @return the invalidation rect for this update.
      */
-    public Rect updateFastScrollerBounds(FastScrollRecyclerView recyclerView, int thumbOffsetY) {
+    public Rect updateFastScrollerBounds(FastScrollRecyclerView recyclerView, int thumbOffsetY, boolean isScrollingUp) {
         mInvalidateRect.set(mBgBounds);
 
         if (isVisible()) {
@@ -206,14 +208,17 @@ public class FastScrollPopup {
                 mBgBounds.top = (recyclerView.getHeight() - bgHeight) / 2;
             } else {
                 if (Utils.isRtl(mRes)) {
-                    mBgBounds.left = (2 * recyclerView.getScrollBarWidth());
+                    mBgBounds.left = (4 * recyclerView.getScrollBarWidth());
                     mBgBounds.right = mBgBounds.left + bgWidth;
                 } else {
-                    mBgBounds.right = recyclerView.getWidth() - (2 * recyclerView.getScrollBarWidth());
+                    mBgBounds.right = recyclerView.getWidth() - (4 * recyclerView.getScrollBarWidth());
                     mBgBounds.left = mBgBounds.right - bgWidth;
                 }
-                mBgBounds.top = thumbOffsetY - bgHeight + recyclerView.getScrollBarThumbHeight() / 2;
-                mBgBounds.top = Math.max(edgePadding, Math.min(mBgBounds.top, recyclerView.getHeight() - edgePadding - bgHeight));
+//                mBgBounds.top = thumbOffsetY - bgHeight + recyclerView.getScrollBarThumbHeight() / 2;
+//                mBgBounds.top = Math.max(edgePadding, Math.min(mBgBounds.top, recyclerView.getHeight() - edgePadding - bgHeight));
+
+                // Align the fast scroller popup at the vertical center of the thumb
+                mBgBounds.top = thumbOffsetY + recyclerView.getScrollBarThumbHeight() / 2 - bgHeight / 2;
             }
             mBgBounds.bottom = mBgBounds.top + bgHeight;
         } else {

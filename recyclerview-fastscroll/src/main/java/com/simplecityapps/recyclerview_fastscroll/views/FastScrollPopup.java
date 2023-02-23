@@ -221,7 +221,7 @@ public class FastScrollPopup {
 
                 // Align the fast scroller popup at the vertical center of the thumb
 //                mBgBounds.top = thumbOffsetY + recyclerView.getScrollBarThumbHeight() / 2 - bgHeight / 2;
-                mBgBounds.top = isScrollingUp ? thumbOffsetY : thumbOffsetY + bgHeight / 3;
+                mBgBounds.top = isScrollingUp ? thumbOffsetY : thumbOffsetY + bgHeight / 2;
                 if (thumbOffsetY == 0 || thumbOffsetY == recyclerView.getHeight() - recyclerView.getScrollBarThumbHeight()) {
                     mBgBounds.top = thumbOffsetY + recyclerView.getScrollBarThumbHeight() / 2 - bgHeight / 2;
                 }
